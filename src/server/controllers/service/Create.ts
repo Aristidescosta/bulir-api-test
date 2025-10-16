@@ -1,10 +1,23 @@
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { IService } from '../../../types/service';
+import { bodyValidation, IService } from '../../shared/schemas/service';
+import * as yup from 'yup';
 
 
+export const create = async (req: Request<{}, {}, IService>, res: Response) => {
+  let validatedData: IService | undefined = undefined;
+  try {
+    validatedData = await bodyValidation.validate(req.body);
+  } catch (error) {
+    const yupError = error as yup.ValidationError;
 
-export const create = (req: Request<{}, {}, IService>, res: Response) => {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      errors: {
+        default: yupError.message,
+      }
+    });
+  }
   console.log('Creating a new service with data:', req.body);
+
   return res.status(StatusCodes.CREATED).send('Service created successfully');
 };
