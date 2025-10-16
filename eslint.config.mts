@@ -18,10 +18,10 @@ export default defineConfig([
       'no-unused-vars': 'warn',
       'no-undef': 'warn',
       quotes: ['error', 'single'],
-      ident: ['error', 2],
       semi: ['error', 'always'],
       'linebreak-style': ['error', 'unix'],
       '@typescript-eslint/no-empty-object-type': 'off',
     },
+
   },
 ]);

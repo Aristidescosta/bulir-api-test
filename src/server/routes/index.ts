@@ -1,10 +1,16 @@
 import { Router } from 'express';
-import { StatusCodes } from 'http-status-codes'; 'http-status-codes';
+import { StatusCodes } from 'http-status-codes';
+import { ServicesController } from '../controllers';
 
 const router = Router();
 
-router.get("/", (req, res) => {
-  res.status(StatusCodes.OK).send("Hello, World!");
+/* Rotas para os servicos */
+
+router.post('/', ServicesController.create);
+
+
+router.get('/', (req, res) => {
+  res.status(StatusCodes.OK).send('Hello, World!');
 });
 
 export { router };
