@@ -12,7 +12,7 @@ export const updateByIdValidation = validation((getSchema) => ({
   params: getSchema<TParamProp>(paramValidation)
 }));
 
-export const updateById = async (req: Request<{}, {}, IService>, res: Response) => {
+export const updateById = async (req: Request<TParamProp, {}, IService>, res: Response) => {
   try {
     console.log(req.body);
     console.log(req.params);
