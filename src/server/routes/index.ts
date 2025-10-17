@@ -6,7 +6,8 @@ const router = Router();
 
 /* Rotas para os servicos */
 
-router.post('/', ServicesController.createValidation, ServicesController.create);
+router.post('/services', ServicesController.createValidation, ServicesController.create);
+router.get('/services', ServicesController.getAllValidation, ServicesController.getAll);
 
 
 router.get('/', (req, res) => {

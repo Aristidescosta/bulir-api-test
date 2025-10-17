@@ -4,7 +4,7 @@ import { StatusCodes } from 'http-status-codes';
 import * as yup from 'yup';
 
 type TProperty = 'body' | 'header' | 'params' | 'query';
-type TGetSchema = <T extends yup.AnyObject>(schema: yup.ObjectSchema<T>) => yup.ObjectSchema<T>;
+type TGetSchema = <T extends yup.Maybe<yup.AnyObject>>(schema: yup.ObjectSchema<T>) => yup.ObjectSchema<T>;
 
 type TAllSchemas = Record<TProperty, yup.ObjectSchema<any>>;
 type TGetAllSchemas = (getSchema: TGetSchema) => Partial<TAllSchemas>;
