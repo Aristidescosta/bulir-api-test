@@ -8,7 +8,6 @@ import { validation } from '../../shared/middlewares';
 
 export const createValidation = validation((getSchema) => ({
   body: getSchema<IService>(bodyValidation),
-
 }));
 
 export const create = async (req: Request<{}, {}, IService>, res: Response) => {
