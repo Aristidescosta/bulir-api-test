@@ -31,7 +31,7 @@ export const bodyValidation = yup.object({
     .required('Categoria é obrigatória')
     .oneOf(ALLOWED_CATEGORIES, `Categoria deve ser uma das: ${ALLOWED_CATEGORIES.join(', ')}`)
     .uppercase(),
-  duration_minutes: yup
+  duration: yup
     .number()
     .required('Duração é obrigatória')
     .integer('Duração deve ser um número inteiro')
