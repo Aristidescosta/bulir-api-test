@@ -3,11 +3,11 @@
 import { Knex } from 'knex';
 import path from 'path';
 
-export const develoment: Knex.Config = {
+export const development: Knex.Config = {
   client: 'sqlite3',
-  useNullAsDefault: false,
+  useNullAsDefault: true,
   connection: {
-    filename: path.resolve('..', '..', '..', '..', 'database.sqlite')
+    filename: path.resolve(__dirname, '..', '..', '..', '..', 'database.sqlite')
   },
   migrations: {
     directory: path.resolve(__dirname, '..', 'migrations'),
@@ -17,13 +17,15 @@ export const develoment: Knex.Config = {
   },
   pool: {
     afterCreate: (connection: any, done: Function) => {
-      connection.run('PRAGMA foreign_keys  = ON');
+      connection.run('PRAGMA foreign_keys = ON');
       done();
     }
   }
 };
 
 export const test: Knex.Config = {
-  ...develoment,
+  ...development,
   connection: ':memory:'
 };
+
+export default development;
