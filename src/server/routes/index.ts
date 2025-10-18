@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { ServicesController } from '../controllers';
+import { ServicesController, UserController } from '../controllers';
 
 const router = Router();
 
@@ -11,6 +11,9 @@ router.get('/services', ServicesController.getAllValidation, ServicesController.
 router.get('/services/:id', ServicesController.getByIdValidation, ServicesController.getById);
 router.delete('/services/:id', ServicesController.deleteByIdValidation, ServicesController.deleteById);
 router.put('/services/:id', ServicesController.updateByIdValidation, ServicesController.updateById);
+
+/* Rotas para os usuarios */
+router.post('/api/auth/register', UserController.createValidation, UserController.create);
 
 
 router.get('/', (req, res) => {

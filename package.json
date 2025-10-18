@@ -15,7 +15,9 @@
     "test": "jest"
   },
   "dependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/jest": "^30.0.0",
+    "bcrypt": "^6.0.0",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "http-status-codes": "^2.3.0",

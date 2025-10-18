@@ -1,0 +1,23 @@
+export interface IUser {
+  id: string;
+  name: string;
+  email: string;
+  nif: string;
+  password_hash: string;
+  phone?: string | null;
+  type: EUserType;
+  status: EUserStatus;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export enum EUserType {
+  CUSTOMER = 'CUSTOMER',
+  PROVIDER = 'PROVIDER',
+}
+
+export enum EUserStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  SUSPENDED = 'SUSPENDED',
+}
