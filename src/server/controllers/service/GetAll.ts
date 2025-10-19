@@ -3,8 +3,8 @@ import { StatusCodes } from 'http-status-codes';
 import { Request, Response } from 'express';
 
 import { queryValidation, TQueryParams } from '../../shared/schemas/querySchema';
-import { IService } from '../../shared/schemas/service';
 import { validation } from '../../shared/middlewares';
+import { IService } from '../../../types/service';
 
 export const getAllValidation = validation((getSchema) => ({
   query: getSchema<TQueryParams>(queryValidation)

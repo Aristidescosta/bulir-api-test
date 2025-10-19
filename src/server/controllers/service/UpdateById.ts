@@ -2,13 +2,14 @@
 import { StatusCodes } from 'http-status-codes';
 import { Request, Response } from 'express';
 
-import { bodyValidation, IService } from '../../shared/schemas/service';
 import { validation } from '../../shared/middlewares';
 import { paramValidation, TParamProp } from '../../shared/schemas/param';
+import { IService } from '../../../types/service';
+import { IUpdateService, updateServiceSchema } from '../../shared/schemas/service';
 
 
 export const updateByIdValidation = validation((getSchema) => ({
-  body: getSchema<IService>(bodyValidation),
+  body: getSchema<IUpdateService>(updateServiceSchema),
   params: getSchema<TParamProp>(paramValidation)
 }));
 

@@ -2,9 +2,9 @@
 import { StatusCodes } from 'http-status-codes';
 import { Request, Response } from 'express';
 
-import { IService } from '../../shared/schemas/service';
 import { validation } from '../../shared/middlewares';
 import { paramValidation, TParamProp } from '../../shared/schemas/param';
+import { IService } from '../../../types/service';
 
 export const deleteByIdValidation = validation((getSchema) => ({
   params: getSchema<TParamProp>(paramValidation)
