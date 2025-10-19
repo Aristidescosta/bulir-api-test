@@ -17,7 +17,7 @@ router.get('/auth/me', authenticate, AuthController.me);
 /* Rotas para os servicos */
 
 router.post('/services', authenticate, ServicesController.createValidation, ServicesController.create);
-router.get('/services', ServicesController.getAllValidation, ServicesController.getAll);
+router.get('/services', authenticate, ServicesController.getAllValidation, ServicesController.getAll);
 router.get('/services/:id', ServicesController.getByIdValidation, ServicesController.getById);
 router.delete('/services/:id', ServicesController.deleteByIdValidation, ServicesController.deleteById);
 router.put('/services/:id', ServicesController.updateByIdValidation, ServicesController.updateById);
