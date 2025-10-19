@@ -18,9 +18,9 @@ router.get('/auth/me', authenticate, AuthController.me);
 
 router.post('/services', authenticate, ServicesController.createValidation, ServicesController.create);
 router.get('/services', authenticate, ServicesController.getAllValidation, ServicesController.getAll);
-router.get('/services/:id', ServicesController.getByIdValidation, ServicesController.getById);
-router.delete('/services/:id', ServicesController.deleteByIdValidation, ServicesController.deleteById);
-router.put('/services/:id', ServicesController.updateByIdValidation, ServicesController.updateById);
+router.get('/services/:id', authenticate, ServicesController.getByIdValidation, ServicesController.getById);
+router.delete('/services/:id', authenticate, ServicesController.deleteByIdValidation, ServicesController.deleteById);
+router.put('/services/:id', authenticate, ServicesController.updateByIdValidation, ServicesController.updateById);
 
 /* Rotas para os usuarios */
 router.post('/users', UserController.createValidation, UserController.create);

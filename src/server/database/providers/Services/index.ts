@@ -161,5 +161,32 @@ export class ServiceProvider {
       console.error('Error in ServiceProvider.count:', error);
       throw error;
     }
+  };
+
+  /**
+   * Busca serviço por ID com informações do provedor
+   */
+  async findByIdWithProvider(id: string): Promise<IServiceWithProvider | null> {
+    try {
+      const service = await this.knex(ETableNames.service)
+        .select(
+          `${ETableNames.service}.*`,
+          `${ETableNames.user}.name as provider_name`,
+          `${ETableNames.user}.email as provider_email`,
+          `${ETableNames.user}.phone as provider_phone`
+        )
+        .leftJoin(
+          ETableNames.user,
+          `${ETableNames.service}.provider_id`,
+          `${ETableNames.user}.id`
+        )
+        .where(`${ETableNames.service}.id`, id)
+        .first();
+
+      return service || null;
+    } catch (error) {
+      console.error('Error in ServiceProvider.findByIdWithProvider:', error);
+      throw error;
+    }
   }
 }
