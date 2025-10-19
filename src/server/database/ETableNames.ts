@@ -1,4 +1,5 @@
 export enum ETableNames  {
   service = 'service',
-  user = 'users'
+  user = 'users',
+  refresh_tokens = 'refresh_tokens'
 }

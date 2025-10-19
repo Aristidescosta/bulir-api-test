@@ -85,13 +85,12 @@ export class UserProvider {
   /**
    * Busca usuário por ID
    */
-  async findById(userId: string): Promise<Omit<IUser, 'id'> | null> {
+  async findById(userId: string): Promise<IUser | null> {
     try {
       const user = await this.knex(ETableNames.user)
         .where('id', userId)
         .first();
-      /* const { id, ...currentUser  } = user;  */
-
+        
       return user || null;
     } catch (error) {
       console.error('Error in UserProvider.findById:', error);
