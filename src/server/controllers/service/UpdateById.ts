@@ -6,6 +6,8 @@ import { validation } from '../../shared/middlewares';
 import { paramValidation, TParamProp } from '../../shared/schemas/param';
 import { IService } from '../../../types/service';
 import { IUpdateService, updateServiceSchema } from '../../shared/schemas/service';
+import { Knex } from '../../database/knex';
+import { ServiceProvider } from '../../database/providers/Services';
 
 
 export const updateByIdValidation = validation((getSchema) => ({
@@ -13,16 +15,41 @@ export const updateByIdValidation = validation((getSchema) => ({
   params: getSchema<TParamProp>(paramValidation)
 }));
 
+const serviceProvider = new ServiceProvider(Knex);
+
 export const updateById = async (req: Request<TParamProp, {}, IService>, res: Response) => {
   try {
-    console.log(req.body);
-    console.log(req.params);
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send('Not implemented');
-  } catch (error) {
+    const { id } = req.params;
+    const providerId = (req as any).user?.id;
+
+    // Verificar ownership
+    const isOwner = await serviceProvider.belongsToProvider(id, providerId);
+
+    if (!isOwner) {
+      return res.status(StatusCodes.FORBIDDEN).json({
+        success: false,
+        message: 'Você não tem permissão para atualizar este serviço',
+      });
+    }
+
+    const updatedService = await serviceProvider.update(id, req.body);
+
+    return res.status(StatusCodes.OK).json({
+      success: true,
+      message: 'Serviço atualizado com sucesso',
+      data: updatedService,
+    });
+  } catch (error: any) {
+    if (error.message === 'Serviço não encontrado') {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       success: false,
-      message: 'Erro interno ao actualizar serviço',
-      error: process.env.NODE_ENV === 'development' ? error : undefined,
+      message: 'Erro ao atualizar serviço',
     });
   }
 };

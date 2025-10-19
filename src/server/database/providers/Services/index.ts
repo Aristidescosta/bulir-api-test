@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Knex } from 'knex';
-import { EServiceStatus, ICreateServiceDTO, IService, IServiceFilters, IServiceWithProvider } from '../../../../types/service';
+import { EServiceStatus, ICreateServiceDTO, IService, IServiceFilters, IServiceWithProvider, IUpdateServiceDTO } from '../../../../types/service';
 import { ETableNames } from '../../ETableNames';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -68,7 +68,6 @@ export class ServiceProvider {
           `${ETableNames.service}.provider_id`,
           `${ETableNames.user}.id`
         );
-      console.log('QUERY: ', `${ETableNames.user}.name as provider_name`);
 
       // Aplicar filtros (mesma lógica do findAll)
       if (filters?.provider_id) {
@@ -186,6 +185,74 @@ export class ServiceProvider {
       return service || null;
     } catch (error) {
       console.error('Error in ServiceProvider.findByIdWithProvider:', error);
+      throw error;
+    }
+  };
+
+  /**
+   * Verifica se serviço pertence a um provedor
+   */
+  async belongsToProvider(serviceId: string, providerId: string): Promise<boolean> {
+    try {
+      const service = await this.knex(ETableNames.service)
+        .where({ id: serviceId, provider_id: providerId } as any)
+        .first();
+
+      return !!service;
+    } catch (error) {
+      console.error('Error in ServiceProvider.belongsToProvider:', error);
+      throw error;
+    }
+  };
+
+  /**
+   * Atualiza serviço
+   */
+  async update(id: string, data: IUpdateServiceDTO): Promise<IService> {
+    try {
+      // Verificar se serviço existe
+      const service = await this.findById(id);
+      if (!service) {
+        throw new Error('Serviço não encontrado');
+      }
+
+      const updateData: any = {
+        updated_at: this.knex.fn.now(),
+      };
+
+      if (data.name !== undefined) updateData.name = data.name;
+      if (data.description !== undefined) updateData.description = data.description;
+      if (data.category !== undefined) updateData.category = data.category;
+      if (data.duration_minutes !== undefined) {
+        updateData.duration_minutes = data.duration_minutes;
+      }
+      if (data.price !== undefined) updateData.price = data.price;
+      if (data.status !== undefined) updateData.status = data.status;
+
+      const [updatedService] = await this.knex(ETableNames.service)
+        .where({ id })
+        .update(updateData)
+        .returning('*');
+
+      return updatedService as IService;
+    } catch (error) {
+      console.error('Error in ServiceProvider.update:', error);
+      throw error;
+    }
+  };
+
+  /**
+   * Busca serviço por ID
+   */
+  async findById(id: string): Promise<IService | null> {
+    try {
+      const service = await this.knex<IService>(ETableNames.service)
+        .where({ id })
+        .first();
+
+      return service || null;
+    } catch (error) {
+      console.error('Error in ServiceProvider.findById:', error);
       throw error;
     }
   }

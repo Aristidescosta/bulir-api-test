@@ -12,7 +12,6 @@ export const deleteByIdValidation = validation((getSchema) => ({
 
 export const deleteById = async (req: Request<{}, {}, IService>, res: Response) => {
   try {
-    console.log(req.params);
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send('Not implemented');
   } catch (error) {
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
