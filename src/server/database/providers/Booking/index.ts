@@ -291,5 +291,109 @@ export class BookingProvider {
       console.error('Error in BookingProvider.count:', error);
       throw error;
     }
+  };
+
+  /**
+   * Busca reserva com todos os detalhes
+   */
+  async findByIdWithDetails(id: string): Promise<IBookingWithDetails | null> {
+    try {
+      const booking = await this.knex(ETableNames.bookings)
+        .select(
+          `${ETableNames.bookings}.*`,
+          `${ETableNames.service}.name as service_name`,
+          `${ETableNames.service}.description as service_description`,
+          `${ETableNames.service}.category as service_category`,
+          'customer.name as customer_name',
+          'customer.email as customer_email',
+          'customer.phone as customer_phone',
+          'provider.name as provider_name',
+          'provider.email as provider_email',
+          'provider.phone as provider_phone'
+        )
+        .leftJoin(
+          ETableNames.service,
+          `${ETableNames.bookings}.service_id`,
+          `${ETableNames.service}.id`
+        )
+        .leftJoin(
+          `${ETableNames.user} as customer`,
+          `${ETableNames.bookings}.customer_id`,
+          'customer.id'
+        )
+        .leftJoin(
+          `${ETableNames.user} as provider`,
+          `${ETableNames.bookings}.provider_id`,
+          'provider.id'
+        )
+        .where(`${ETableNames.bookings}.id`, id)
+        .first();
+
+      return booking || null;
+    } catch (error) {
+      console.error('Error in BookingProvider.findByIdWithDetails:', error);
+      throw error;
+    }
+  };
+
+  /**
+   * Verifica se reserva pertence a um provedor
+   */
+  async belongsToProvider(bookingId: string, providerId: string): Promise<boolean> {
+    try {
+      const booking = await this.knex(ETableNames.bookings)
+        .where({ id: bookingId, provider_id: providerId })
+        .first();
+
+      return !!booking;
+    } catch (error) {
+      console.error('Error in BookingProvider.belongsToProvider:', error);
+      throw error;
+    }
+  };
+
+  /**
+   * Completa uma reserva
+   */
+  async complete(id: string): Promise<IBooking> {
+    try {
+      const booking = await this.findById(id);
+      if (!booking) {
+        throw new Error('Reserva não encontrada');
+      }
+
+      if (booking.status !== EBookingStatus.CONFIRMED) {
+        throw new Error('Apenas reservas confirmadas podem ser completadas');
+      }
+
+      const [completedBooking] = await this.knex(ETableNames.bookings)
+        .where({ id })
+        .update({
+          status: EBookingStatus.COMPLETED,
+          updated_at: this.knex.fn.now(),
+        })
+        .returning('*');
+
+      return completedBooking as IBooking;
+    } catch (error) {
+      console.error('Error in BookingProvider.complete:', error);
+      throw error;
+    }
+  };
+
+  /**
+   * Busca reserva por ID
+   */
+  async findById(id: string): Promise<IBooking | null> {
+    try {
+      const booking = await this.knex(ETableNames.bookings)
+        .where({ id })
+        .first();
+
+      return booking || null;
+    } catch (error) {
+      console.error('Error in BookingProvider.findById:', error);
+      throw error;
+    }
   }
 }

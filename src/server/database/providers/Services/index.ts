@@ -291,5 +291,6 @@ export class ServiceProvider {
       console.error('Error in ServiceProvider.updateStatus:', error);
       throw error;
     }
-  }
+  };
+  
 }

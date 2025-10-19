@@ -33,6 +33,8 @@ router.get('/users', authenticate, UserController.getAllValidation, UserControll
 /* Booking */
 router.post('/booking', authenticate, BookingController.createValidation, BookingController.create);
 router.get('/bookings', authenticate, BookingController.getAllValidation, BookingController.getAll);
+router.get('/booking/:id', authenticate, BookingController.getByIdValidation, BookingController.getById);
+router.get('/booking/complete/:id', authenticate, BookingController.getByIdValidation, BookingController.getById);
 
 router.get('/', (req, res) => {
   res.status(StatusCodes.OK).send('Hello, World!');
