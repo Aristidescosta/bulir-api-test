@@ -15,9 +15,17 @@ router.put('/services/:id', ServicesController.updateByIdValidation, ServicesCon
 /* Rotas para os usuarios */
 router.post('/api/auth/register', UserController.createValidation, UserController.create);
 
+router.get('/users/:id', UserController.getByIdValidation, UserController.getById);
+router.put('/users/:id', UserController.updateByIdValidation, UserController.updateById);
+router.delete('/users/:id', UserController.deleteByIdValidation, UserController.deleteById);
+router.get('/users/email/:email', UserController.getByEmailValidation, UserController.getByEmail);
+router.get('/users', UserController.getAllValidation, UserController.getAll);
 
 router.get('/', (req, res) => {
   res.status(StatusCodes.OK).send('Hello, World!');
+});
+router.get('/teste', (req, res) => {
+  res.status(StatusCodes.OK).send('Hello, World for a test!');
 });
 
 export { router };

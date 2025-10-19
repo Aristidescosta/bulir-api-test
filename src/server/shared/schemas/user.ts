@@ -48,4 +48,53 @@ export const createUserSchema = yup.object({
     .required('Tipo de usuário é obrigatório'),
 });
 
+export const updateUserSchema = yup.object({
+  name: yup
+    .string()
+    .optional()
+    .min(3, 'Nome deve ter no mínimo 3 caracteres')
+    .max(150, 'Nome deve ter no máximo 150 caracteres')
+    .trim(),
+
+  email: yup
+    .string()
+    .optional()
+    .email('Email inválido')
+    .max(255, 'Email deve ter no máximo 255 caracteres')
+    .lowercase()
+    .trim(),
+
+ /*  nif: yup
+    .string()
+    .optional()
+    .notRequired()
+    .transform((val: string) => (val || '').replace(/\s+/g, '').toUpperCase())
+    .optional()
+    .test('format-angola', 'NIF inválido para Angola', (value) => {
+      if (!value) return false;
+      const tenDigits = /^\d{10}$/;                     // ex: 5419011735
+      const fourteenPattern = /^\d{9}[A-Z]{2}\d{3}$/;  // ex: 006401917LA041
+      return tenDigits.test(value) || fourteenPattern.test(value);
+    }), */
+  password: yup
+    .string()
+    .optional()
+    .min(8, 'Senha deve ter no mínimo 8 caracteres')
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+      'Senha deve conter letra maiúscula, minúscula e número'
+    ),
+
+  phone: yup
+    .string()
+    .matches(/^\+?[1-9]\d{1,14}$/, 'Telefone inválido')
+    .nullable(),
+
+  type: yup
+    .string()
+    .oneOf(Object.values(EUserType), 'Tipo de usuário inválido')
+    .optional()
+});
+
+export type IUpdateUser = yup.InferType<typeof updateUserSchema>;
 export type ICreateUser = yup.InferType<typeof createUserSchema>;

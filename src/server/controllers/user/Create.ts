@@ -2,11 +2,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response } from 'express';
 import { Knex } from '../../database/knex';
-import { ICreateUserDTO, UserProvider } from '../../database/providers/User/Create';
 import { validation } from '../../shared/middlewares';
 import { createUserSchema, ICreateUser } from '../../shared/schemas/user';
 import { EUserType } from '../../../types/user';
 import { StatusCodes } from 'http-status-codes';
+import { ICreateUserDTO, UserProvider } from '../../database/providers/User';
 
 export const createValidation = validation((getSchema) => ({
   body: getSchema<ICreateUser>(createUserSchema)
