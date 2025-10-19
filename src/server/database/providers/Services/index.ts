@@ -255,5 +255,41 @@ export class ServiceProvider {
       console.error('Error in ServiceProvider.findById:', error);
       throw error;
     }
+  };
+
+  /**
+   * Deleta serviço (soft delete - inativa)
+   */
+  async delete(id: string): Promise<IService> {
+    try {
+      return await this.updateStatus(id, EServiceStatus.INACTIVE);
+    } catch (error) {
+      console.error('Error in ServiceProvider.delete:', error);
+      throw error;
+    }
+  };
+
+  /**
+   * Atualiza status do serviço
+   */
+  async updateStatus(id: string, status: EServiceStatus): Promise<IService> {
+    try {
+      const [updatedService] = await this.knex(ETableNames.service)
+        .where({ id })
+        .update({
+          status,
+          updated_at: this.knex.fn.now(),
+        } as any)
+        .returning('*');
+
+      if (!updatedService) {
+        throw new Error('Serviço não encontrado');
+      }
+
+      return updatedService as IService;
+    } catch (error) {
+      console.error('Error in ServiceProvider.updateStatus:', error);
+      throw error;
+    }
   }
 }

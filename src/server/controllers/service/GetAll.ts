@@ -36,7 +36,6 @@ export const getAll = async (req: Request, res: Response) => {
 
     const {
       category,
-      status,
       min_price,
       max_price,
       search,
@@ -49,7 +48,7 @@ export const getAll = async (req: Request, res: Response) => {
     const services = await serviceProvider.findAllWithProvider({
       provider_id: userId as string,
       category: category as any,
-      status: status as any,
+      status: 'ACTIVE' as any,
       min_price: min_price ? Number(min_price) : undefined,
       max_price: max_price ? Number(max_price) : undefined,
       search: search as string,
@@ -60,7 +59,7 @@ export const getAll = async (req: Request, res: Response) => {
     const total = await serviceProvider.count({
       provider_id: userId as string,
       category: category as any,
-      status: status as any,
+      status: 'ACTIVE' as any,
       min_price: min_price ? Number(min_price) : undefined,
       max_price: max_price ? Number(max_price) : undefined,
       search: search as string,
