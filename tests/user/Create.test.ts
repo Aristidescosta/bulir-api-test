@@ -1,7 +1,6 @@
 import { StatusCodes } from 'http-status-codes';
 import { testServer } from '../jest.setup';
 import { Knex } from '../../src/server/database/knex';
-
 describe('Users - Create', () => {
   beforeEach(async () => {
     await Knex('users').del();
@@ -9,7 +8,7 @@ describe('Users - Create', () => {
 
   it('should create a new customer user', async () => {
     const response = await testServer
-      .post('/api/auth/register')
+      .post('/api/users')
       .send({
         name: 'João Silva',
         email: 'joao@example.com',
@@ -22,7 +21,7 @@ describe('Users - Create', () => {
     expect(response.status).toBe(StatusCodes.CREATED);
     expect(response.body).toHaveProperty('success', true);
     expect(response.body).toHaveProperty('message', 'Usuário criado com sucesso');
-    expect(response.body.data).not.toHaveProperty('id');
+    expect(response.body.data).toHaveProperty('id');
     expect(response.body.data).toHaveProperty('name', 'João Silva');
     expect(response.body.data).toHaveProperty('email', 'joao@example.com');
     expect(response.body.data).toHaveProperty('type', 'CUSTOMER');
@@ -31,7 +30,7 @@ describe('Users - Create', () => {
 
   it('should create a new provider user', async () => {
     const response = await testServer
-      .post('/api/auth/register')
+      .post('/api/users')
       .send({
         name: 'Maria Santos',
         email: 'maria@example.com',
@@ -46,7 +45,7 @@ describe('Users - Create', () => {
 
   it('should fail to create user without required fields', async () => {
     const response = await testServer
-      .post('/api/auth/register')
+      .post('/api/users')
       .send({
         name: 'João',
         email: 'joao@example.com',
@@ -61,7 +60,7 @@ describe('Users - Create', () => {
 
   it('should fail to create user with invalid email', async () => {
     const response = await testServer
-      .post('/api/auth/register')
+      .post('/api/users')
       .send({
         name: 'João Silva',
         email: 'invalid-email',
@@ -75,7 +74,7 @@ describe('Users - Create', () => {
 
   it('should fail to create user with invalid NIF', async () => {
     const response = await testServer
-      .post('/api/auth/register')
+      .post('/api/users')
       .send({
         name: 'João Silva',
         email: 'joao@example.com',
@@ -89,7 +88,7 @@ describe('Users - Create', () => {
 
   it('should fail to create user with weak password', async () => {
     const response = await testServer
-      .post('/api/auth/register')
+      .post('/api/users')
       .send({
         name: 'João Silva',
         email: 'joao@example.com',
@@ -102,7 +101,7 @@ describe('Users - Create', () => {
   });
 
   it('should fail to create user with duplicate email', async () => {
-    await testServer.post('/api/auth/register').send({
+    await testServer.post('/api/users').send({
       name: 'João Silva',
       email: 'joao@example.com',
       nif: '006431196LA041',
@@ -110,7 +109,7 @@ describe('Users - Create', () => {
       type: 'CUSTOMER',
     });
 
-    const response = await testServer.post('/api/auth/register').send({
+    const response = await testServer.post('/api/users').send({
       name: 'Maria Santos',
       email: 'joao@example.com',
       nif: '006431196LA048',
@@ -123,7 +122,7 @@ describe('Users - Create', () => {
   });
 
   it('should fail to create user with duplicate NIF', async () => {
-    await testServer.post('/api/auth/register').send({
+    await testServer.post('/api/users').send({
       name: 'João Silva',
       email: 'joao@example.com',
       nif: '006431196LA048',
@@ -131,7 +130,7 @@ describe('Users - Create', () => {
       type: 'CUSTOMER',
     });
 
-    const response = await testServer.post('/api/auth/register').send({
+    const response = await testServer.post('/api/users').send({
       name: 'Maria Santos',
       email: 'maria@example.com',
       nif: '006431196LA048',
@@ -139,15 +138,13 @@ describe('Users - Create', () => {
       type: 'CUSTOMER',
     });
 
-    console.log('RESPONSE: ', response.body);
-
     expect(response.status).toBe(StatusCodes.CONFLICT);
     expect(response.body).toHaveProperty('message', 'NIF já está em uso');
   });
 
   it('should fail to create user with invalid type', async () => {
     const response = await testServer
-      .post('/api/auth/register')
+      .post('/api/users')
       .send({
         name: 'João Silva',
         email: 'joao@example.com',
@@ -158,4 +155,4 @@ describe('Users - Create', () => {
 
     expect(response.status).toBe(StatusCodes.BAD_REQUEST);
   });
-});
+}); 

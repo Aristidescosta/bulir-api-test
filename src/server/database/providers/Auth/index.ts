@@ -289,21 +289,17 @@ export class AuthProvider {
         throw new Error('Conta suspensa. Entre em contato com o suporte');
       }
 
-      // Validar senha
       const isPasswordValid = await bcrypt.compare(password, user.password_hash);
 
       if (!isPasswordValid) {
         throw new Error('Email ou senha incorretos');
       }
 
-      // Gerar tokens
       const token = this.generateToken(user);
       const refreshToken = this.generateRefreshToken(user);
 
-      // Salvar refresh token no banco (opcional, para invalidação)
       await this.saveRefreshToken(user.id, refreshToken);
 
-      // Remover password_hash da resposta
       const { password_hash, ...userWithoutPassword } = user;
 
       return {

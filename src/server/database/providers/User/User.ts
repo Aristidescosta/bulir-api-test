@@ -73,7 +73,7 @@ export class UserProvider {
         .insert(userData)
         .returning('*');
 
-      const { id, password_hash, ...rest } = insertedUser;
+      const { password_hash, ...rest } = insertedUser;
 
       return rest as IUser;
     } catch (error) {
@@ -90,7 +90,7 @@ export class UserProvider {
       const user = await this.knex(ETableNames.user)
         .where('id', userId)
         .first();
-        
+
       return user || null;
     } catch (error) {
       console.error('Error in UserProvider.findById:', error);
@@ -106,7 +106,6 @@ export class UserProvider {
       const user = await this.knex(ETableNames.user)
         .where({ email: email.toLowerCase().trim() })
         .first();
-
       return user || null;
     } catch (error) {
       console.error('Error in UserProvider.findByEmail:', error);
