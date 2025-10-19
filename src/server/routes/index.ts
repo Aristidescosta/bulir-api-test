@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { ServicesController, UserController } from '../controllers';
+import { BookingController, ServicesController, UserController } from '../controllers';
 import { AuthController } from '../controllers/auth';
 import { authenticate } from '../shared/middlewares/authenticate';
 
@@ -29,6 +29,9 @@ router.put('/users/:id', UserController.updateByIdValidation, UserController.upd
 router.delete('/users/:id', UserController.deleteByIdValidation, UserController.deleteById);
 router.get('/users/email/:email', UserController.getByEmailValidation, UserController.getByEmail);
 router.get('/users', authenticate, UserController.getAllValidation, UserController.getAll);
+
+/* Booking */
+router.post('/booking', authenticate, BookingController.createValidation, BookingController.create);
 
 router.get('/', (req, res) => {
   res.status(StatusCodes.OK).send('Hello, World!');
