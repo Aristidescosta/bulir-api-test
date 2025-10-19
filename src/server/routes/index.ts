@@ -13,7 +13,7 @@ router.delete('/services/:id', ServicesController.deleteByIdValidation, Services
 router.put('/services/:id', ServicesController.updateByIdValidation, ServicesController.updateById);
 
 /* Rotas para os usuarios */
-router.post('/api/auth/register', UserController.createValidation, UserController.create);
+router.post('/auth/register', UserController.createValidation, UserController.create);
 
 router.get('/users/:id', UserController.getByIdValidation, UserController.getById);
 router.put('/users/:id', UserController.updateByIdValidation, UserController.updateById);
