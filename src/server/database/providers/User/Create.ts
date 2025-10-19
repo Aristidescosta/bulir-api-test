@@ -1,21 +1,22 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Knex } from 'knex';
 import bcrypt from 'bcrypt';
 import { ETableNames } from '../../ETableNames';
 import { EUserStatus, EUserType, IUser } from '../../../../types/user';
-
+import { randomUUID } from 'crypto';
 
 export interface ICreateUserDTO {
   name: string;
   email: string;
   nif: string;
   password: string;
-  phone?:  string | null | undefined;
+  phone?: string | null | undefined;
   type: EUserType;
 }
 
 export class UserProvider {
-  constructor(private readonly knex: Knex) {}
+  constructor(private readonly knex: Knex) { }
 
   /**
    * Verifica se email já está em uso
@@ -24,7 +25,7 @@ export class UserProvider {
     const user = await this.knex(ETableNames.user)
       .where({ email })
       .first();
-    
+
     return !!user;
   }
 
@@ -35,7 +36,7 @@ export class UserProvider {
     const user = await this.knex(ETableNames.user)
       .where({ nif })
       .first();
-    
+
     return !!user;
   }
 
@@ -54,15 +55,15 @@ export class UserProvider {
         throw new Error('NIF já está em uso');
       }
 
-      // Hash da senha
       const saltRounds = 10;
-      const password_hash = await bcrypt.hash(data.password, saltRounds);
+      const password = await bcrypt.hash(data.password, saltRounds);
 
       const userData = {
+        id: randomUUID(),
         name: data.name,
         email: data.email.toLowerCase().trim(),
         nif: data.nif,
-        password_hash,
+        password_hash: password,
         phone: data.phone || null,
         type: data.type,
         status: EUserStatus.ACTIVE,
@@ -72,7 +73,9 @@ export class UserProvider {
         .insert(userData)
         .returning('*');
 
-      return insertedUser as IUser;
+      const { id, password_hash, ...rest } = insertedUser;
+
+      return rest as IUser;
     } catch (error) {
       console.error('Error in UserProvider.create:', error);
       throw error;
@@ -82,11 +85,12 @@ export class UserProvider {
   /**
    * Busca usuário por ID
    */
-  async findById(id: string): Promise<IUser | null> {
+  async findById(userId: string): Promise<Omit<IUser, 'id'> | null> {
     try {
       const user = await this.knex(ETableNames.user)
-        .where({ id })
+        .where('id', userId)
         .first();
+      /* const { id, ...currentUser  } = user;  */
 
       return user || null;
     } catch (error) {
@@ -181,7 +185,7 @@ export class UserProvider {
           .where({ email: data.email })
           .whereNot({ id })
           .first();
-        
+
         if (emailInUse) {
           throw new Error('Email já está em uso por outro usuário');
         }
@@ -193,7 +197,7 @@ export class UserProvider {
           .where({ nif: data.nif })
           .whereNot({ id })
           .first();
-        
+
         if (nifInUse) {
           throw new Error('NIF já está em uso por outro usuário');
         }
@@ -251,7 +255,7 @@ export class UserProvider {
   async validatePassword(email: string, password: string): Promise<boolean> {
     try {
       const user = await this.findByEmail(email);
-      
+
       if (!user) {
         return false;
       }
@@ -282,16 +286,14 @@ export class UserProvider {
       }
 
       const [result] = await query;
-      return Number(result.total);
+      // result can be an object like { total: '42' } or a string (depends on DB/driver)
+      const total = typeof result === 'string'
+        ? Number(result)
+        : Number((result as any).total);
+      return total;
     } catch (error) {
       console.error('Error in UserProvider.count:', error);
       throw error;
     }
   }
 }
-
-// ============================================
-// SINGLETON INSTANCE (opcional)
-// ============================================
-// import { knex } from '../../database/knex';
-// export const userProvider = new UserProvider(knex);

@@ -4,7 +4,7 @@ export interface IUser {
   email: string;
   nif: string;
   password_hash: string;
-  phone?: string | null;
+  phone?:  string | null | undefined;
   type: EUserType;
   status: EUserStatus;
   created_at: Date;

@@ -19,7 +19,7 @@ export default defineConfig([
       'no-undef': 'warn',
       quotes: ['error', 'single'],
       semi: ['error', 'always'],
-      'linebreak-style': ['error', 'unix'],
+      /* 'linebreak-style': ['error', 'unix'], */
       '@typescript-eslint/no-empty-object-type': 'off',
     },
 

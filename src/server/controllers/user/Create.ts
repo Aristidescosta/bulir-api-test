@@ -24,10 +24,9 @@ export const create = async (req: Request<{}, {}, ICreateUser>, res: Response) =
       phone: req.body.phone,
       type: req.body.type || EUserType.CUSTOMER,
     };
-
+    
     const newUser = await userProvider.create(userData);
 
-    // Remover password_hash da resposta
     const { password_hash, ...userWithoutPassword } = newUser;
 
     return res.status(StatusCodes.CREATED).json({

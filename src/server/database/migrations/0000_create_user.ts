@@ -4,7 +4,6 @@ import { ETableNames } from '../ETableNames';
 export async function up(knex: Knex) {
   return knex.schema
     .createTable(ETableNames.user, (table) => {
-      // SQLite não tem UUID nativo → armazenamos como string
       table.string('id', 36).primary();
 
       table.string('name', 150).notNullable();
@@ -13,7 +12,6 @@ export async function up(knex: Knex) {
       table.string('password_hash', 255).notNullable();
       table.string('phone', 20).nullable();
 
-      // Simulando ENUMs com CHECK constraints (compatível com SQLite)
       table
         .string('type', 20)
         .notNullable()
@@ -35,7 +33,6 @@ export async function up(knex: Knex) {
         .notNullable()
         .defaultTo(knex.fn.now());
 
-      // Índices
       table.index('email', 'idx_users_email');
       table.index('type', 'idx_users_type');
       table.index('status', 'idx_users_status');
