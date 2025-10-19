@@ -1,7 +1,7 @@
 import { Knex } from 'knex';
 import { ServiceProvider } from '../Services';
 import { UserProvider } from '../User';
-import { EBookingStatus, IAvailabilityCheck, IBooking, ICreateBookingDTO } from '../../../../types/booking';
+import { EBookingStatus, IAvailabilityCheck, IBooking, IBookingFilters, IBookingWithDetails, ICreateBookingDTO } from '../../../../types/booking';
 import { ETableNames } from '../../ETableNames';
 import { v4 as uuid } from 'uuid';
 
@@ -105,7 +105,6 @@ export class BookingProvider {
     return `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
   }
 
-
   /**
    * Verifica se data/hora é futura
    */
@@ -173,6 +172,123 @@ export class BookingProvider {
       return conflictingBookings.length === 0;
     } catch (error) {
       console.error('Error in BookingProvider.checkAvailability:', error);
+      throw error;
+    }
+  };
+
+  /**
+  * Lista reservas com detalhes
+  */
+  async findAllWithDetails(filters?: IBookingFilters): Promise<IBookingWithDetails[]> {
+    try {
+      let query = this.knex(ETableNames.bookings)
+        .select(
+          `${ETableNames.bookings}.*`,
+          `${ETableNames.service}.name as service_name`,
+          `${ETableNames.service}.description as service_description`,
+          `${ETableNames.service}.category as service_category`,
+          'customer.name as customer_name',
+          'customer.email as customer_email',
+          'customer.phone as customer_phone',
+          'provider.name as provider_name',
+          'provider.email as provider_email',
+          'provider.phone as provider_phone'
+        )
+        .leftJoin(
+          ETableNames.service,
+          `${ETableNames.bookings}.service_id`,
+          `${ETableNames.service}.id`
+        )
+        .leftJoin(
+          `${ETableNames.user} as customer`,
+          `${ETableNames.bookings}.customer_id`,
+          'customer.id'
+        )
+        .leftJoin(
+          `${ETableNames.user} as provider`,
+          `${ETableNames.bookings}.provider_id`,
+          'provider.id'
+        );
+
+      if (filters?.customer_id) {
+        query = query.where(`${ETableNames.bookings}.customer_id`, filters.customer_id);
+      }
+
+      if (filters?.provider_id) {
+        query = query.where(`${ETableNames.bookings}.provider_id`, filters.provider_id);
+      }
+
+      if (filters?.service_id) {
+        query = query.where(`${ETableNames.bookings}.service_id`, filters.service_id);
+      }
+
+      if (filters?.status) {
+        query = query.where(`${ETableNames.bookings}.status`, filters.status);
+      }
+
+      if (filters?.date_from) {
+        query = query.where(`${ETableNames.bookings}.booking_date`, '>=', filters.date_from);
+      }
+
+      if (filters?.date_to) {
+        query = query.where(`${ETableNames.bookings}.booking_date`, '<=', filters.date_to);
+      }
+
+      if (filters?.limit) {
+        query = query.limit(filters.limit);
+      }
+
+      if (filters?.offset) {
+        query = query.offset(filters.offset);
+      }
+
+      query = query
+        .orderBy(`${ETableNames.bookings}.booking_date`, 'desc')
+        .orderBy(`${ETableNames.bookings}.start_time`, 'desc');
+
+      const bookings = await query;
+      return bookings as IBookingWithDetails[];
+    } catch (error) {
+      console.error('Error in BookingProvider.findAllWithDetails:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Conta reservas com filtros
+   */
+  async count(filters?: Omit<IBookingFilters, 'limit' | 'offset'>): Promise<number> {
+    try {
+      let query = this.knex(ETableNames.bookings).count('* as total');
+
+      if (filters?.customer_id) {
+        query = query.where({ customer_id: filters.customer_id });
+      }
+
+      if (filters?.provider_id) {
+        query = query.where({ provider_id: filters.provider_id });
+      }
+
+      if (filters?.service_id) {
+        query = query.where({ service_id: filters.service_id });
+      }
+
+      if (filters?.status) {
+        query = query.where({ status: filters.status });
+      }
+
+      if (filters?.date_from) {
+        query = query.where('booking_date', '>=', filters.date_from);
+      }
+
+      if (filters?.date_to) {
+        query = query.where('booking_date', '<=', filters.date_to);
+      }
+
+      const [result] = await query;
+      return Number(result.total);
+    } catch (error) {
+      console.error('Error in BookingProvider.count:', error);
       throw error;
     }
   }
