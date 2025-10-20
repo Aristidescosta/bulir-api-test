@@ -55,7 +55,7 @@ export async function up(knex: Knex) {
     table.index(['provider_id', 'booking_date'], 'idx_bookings_provider_date');
     table.index(['customer_id', 'status'], 'idx_bookings_customer_status');
   }).then(() => {
-    console.log(`# Created table ${ETableNames.service}`);
+    console.log(`# Created table ${ETableNames.bookings}`);
   });
 }
 
@@ -64,6 +64,6 @@ export async function down(knex: Knex) {
     .schema
     .dropTableIfExists(ETableNames.bookings)
     .then(() => {
-      console.log(`# Droped table ${ETableNames.service}`);
+      console.log(`# Droped table ${ETableNames.bookings}`);
     });
 }

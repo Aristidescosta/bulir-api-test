@@ -39,7 +39,7 @@ export async function up(knex: Knex) {
       table.index('type', 'idx_transactions_type');
       table.index('created_at', 'idx_transactions_created');
     }).then(() => {
-      console.log(`# Created table ${ETableNames.user}`);
+      console.log(`# Created table ${ETableNames.transaction}`);
     });
 }
 
