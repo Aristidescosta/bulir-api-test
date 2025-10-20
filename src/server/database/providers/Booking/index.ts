@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Knex } from 'knex';
 import { ServiceProvider } from '../Services';
 import { UserProvider } from '../User';
@@ -184,15 +185,18 @@ export class BookingProvider {
       let query = this.knex(ETableNames.bookings)
         .select(
           `${ETableNames.bookings}.*`,
+
+          // 🔹 Campos do serviço
+          `${ETableNames.service}.id as service_id`,
           `${ETableNames.service}.name as service_name`,
-          `${ETableNames.service}.description as service_description`,
-          `${ETableNames.service}.category as service_category`,
+
+          // 🔹 Campos do cliente
+          'customer.id as customer_id',
           'customer.name as customer_name',
-          'customer.email as customer_email',
-          'customer.phone as customer_phone',
-          'provider.name as provider_name',
-          'provider.email as provider_email',
-          'provider.phone as provider_phone'
+
+          // 🔹 Campos do provedor
+          'provider.id as provider_id',
+          'provider.name as provider_name'
         )
         .leftJoin(
           ETableNames.service,
@@ -210,49 +214,65 @@ export class BookingProvider {
           'provider.id'
         );
 
-      if (filters?.customer_id) {
+      // 🔍 Filtros dinâmicos
+      if (filters?.customer_id)
         query = query.where(`${ETableNames.bookings}.customer_id`, filters.customer_id);
-      }
-
-      if (filters?.provider_id) {
+      if (filters?.provider_id)
         query = query.where(`${ETableNames.bookings}.provider_id`, filters.provider_id);
-      }
-
-      if (filters?.service_id) {
+      if (filters?.service_id)
         query = query.where(`${ETableNames.bookings}.service_id`, filters.service_id);
-      }
-
-      if (filters?.status) {
+      if (filters?.status)
         query = query.where(`${ETableNames.bookings}.status`, filters.status);
-      }
-
-      if (filters?.date_from) {
+      if (filters?.date_from)
         query = query.where(`${ETableNames.bookings}.booking_date`, '>=', filters.date_from);
-      }
-
-      if (filters?.date_to) {
+      if (filters?.date_to)
         query = query.where(`${ETableNames.bookings}.booking_date`, '<=', filters.date_to);
-      }
-
-      if (filters?.limit) {
+      if (filters?.limit)
         query = query.limit(filters.limit);
-      }
-
-      if (filters?.offset) {
+      if (filters?.offset)
         query = query.offset(filters.offset);
-      }
 
       query = query
         .orderBy(`${ETableNames.bookings}.booking_date`, 'desc')
         .orderBy(`${ETableNames.bookings}.start_time`, 'desc');
 
-      const bookings = await query;
-      return bookings as IBookingWithDetails[];
+      const rows = await query;
+
+      // 🔧 Mapeamento para o formato da interface IBookingWithDetails
+      const bookings: IBookingWithDetails[] = rows.map((b: any) => ({
+        id: b.id,
+        booking_date: b.booking_date,
+        start_time: b.start_time,
+        end_time: b.end_time,
+        status: b.status,
+        total_price: b.total_price,
+        cancellation_reason: b.cancellation_reason,
+        cancelled_by: b.cancelled_by,
+        cancelled_at: b.cancelled_at,
+        created_at: b.created_at,
+        updated_at: b.updated_at,
+
+        service: {
+          id: b.service_id,
+          name: b.service_name,
+        },
+        provider: {
+          id: b.provider_id,
+          name: b.provider_name,
+        },
+        customer: {
+          id: b.customer_id,
+          name: b.customer_name,
+        },
+      }));
+
+      return bookings;
     } catch (error) {
       console.error('Error in BookingProvider.findAllWithDetails:', error);
       throw error;
     }
   }
+
 
   /**
    * Conta reservas com filtros

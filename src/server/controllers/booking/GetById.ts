@@ -28,7 +28,7 @@ export const getById = async (req: Request<TParamProp, {}, {}>, res: Response) =
     }
 
     // Verificar permissão
-    if (booking.customer_id !== userId && booking.provider_id !== userId) {
+    if (booking.customer.id !== userId && booking.provider.id !== userId) {
       return res.status(StatusCodes.FORBIDDEN).json({
         success: false,
         message: 'Você não tem permissão para visualizar esta reserva',

@@ -9,7 +9,7 @@ import { paramValidation, TParamProp } from '../../shared/schemas/param';
 
 const bookingProvider = new BookingProvider(Knex);
 
-export const createValidation = validation((getSchema) => ({
+export const completeValidation = validation((getSchema) => ({
   params: getSchema<TParamProp>(paramValidation)
 }));
 

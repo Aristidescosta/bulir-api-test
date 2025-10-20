@@ -12,10 +12,7 @@ export enum ECancelledBy {
 }
 
 export interface IBooking {
-  id: string;
-  service_id: string;
-  customer_id: string;
-  provider_id: string;
+  id: string
   booking_date: Date;
   start_time: string;
   end_time: string;
@@ -29,15 +26,18 @@ export interface IBooking {
 }
 
 export interface IBookingWithDetails extends IBooking {
-  service_name: string;
-  service_description: string;
-  service_category: string;
-  customer_name: string;
-  customer_email: string;
-  customer_phone: string | null;
-  provider_name: string;
-  provider_email: string;
-  provider_phone: string | null;
+  service: {
+    id: string;
+    name: string;
+  }
+  provider: {
+    id: string;
+    name: string;
+  }
+  customer: {
+    id: string;
+    name: string;
+  }
 }
 
 export interface ICreateBookingDTO {
