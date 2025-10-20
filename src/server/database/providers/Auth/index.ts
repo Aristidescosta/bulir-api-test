@@ -17,12 +17,7 @@ export interface IAuthResponse {
   refreshToken: string;
 }
 
-export interface IJWTPayload {
-  id: string;
-  email: string;
-  type: string;
-  status: string;
-}
+export interface IJWTPayload extends Omit<IUser, 'password_hash'> { }
 
 export interface IRefreshTokenDTO {
   refreshToken: string;
@@ -48,12 +43,8 @@ export class AuthProvider {
   * Gera um access token JWT
   */
   private generateToken(user: IUser): string {
-    const payload: IJWTPayload = {
-      id: user.id,
-      email: user.email,
-      type: user.type,
-      status: user.status,
-    };
+    const { password_hash, ...userWithoutPassword } = user;
+    const payload: IJWTPayload = userWithoutPassword;
 
     const options: SignOptions = {
       expiresIn: this.JWT_EXPIRES_IN as jwt.SignOptions['expiresIn'],
@@ -66,12 +57,7 @@ export class AuthProvider {
    * Gera um refresh token JWT
    */
   private generateRefreshToken(user: IUser): string {
-    const payload: IJWTPayload = {
-      id: user.id,
-      email: user.email,
-      type: user.type,
-      status: user.status,
-    };
+    const payload: IUser = user;
 
     return jwt.sign(payload, this.JWT_REFRESH_SECRET, {
       expiresIn: this.JWT_REFRESH_EXPIRES_IN as jwt.SignOptions['expiresIn'],

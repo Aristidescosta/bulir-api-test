@@ -25,11 +25,11 @@ router.put('/services/:id', authenticate, ServicesController.updateByIdValidatio
 
 /* Rotas para os usuarios */
 router.post('/users', UserController.createValidation, UserController.create);
-router.get('/users/:id', UserController.getByIdValidation, UserController.getById);
+/* router.get('/users/:id', authenticate ,UserController.getByIdValidation, UserController.getById);
 router.put('/users/:id', UserController.updateByIdValidation, UserController.updateById);
 router.delete('/users/:id', UserController.deleteByIdValidation, UserController.deleteById);
 router.get('/users/email/:email', UserController.getByEmailValidation, UserController.getByEmail);
-router.get('/users', authenticate, UserController.getAllValidation, UserController.getAll);
+router.get('/users', authenticate, UserController.getAllValidation, UserController.getAll); */
 
 /* Booking */
 router.post('/booking', authenticate, BookingController.createValidation, BookingController.create);
@@ -39,9 +39,6 @@ router.get('/booking/complete/:id', authenticate, BookingController.completeVali
 
 router.get('/', (req, res) => {
   res.status(StatusCodes.OK).send('Hello, World!');
-});
-router.get('/teste', (req, res) => {
-  res.status(StatusCodes.OK).send('Hello, World for a test!');
 });
 
 export { router };
