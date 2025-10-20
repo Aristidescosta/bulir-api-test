@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { BookingController, ServicesController, UserController } from '../controllers';
+import { BookingController, ServicesController, UserController, WalletController } from '../controllers';
 import { AuthController } from '../controllers/auth';
 import { authenticate } from '../shared/middlewares/authenticate';
 
@@ -38,6 +38,30 @@ router.get('/booking/:id', authenticate, BookingController.getByIdValidation, Bo
 router.patch('/booking/:id/cancel', authenticate, BookingController.cancelValidation, BookingController.cancel);
 router.get('/booking/complete/:id', authenticate, BookingController.completeValidation, BookingController.completeValidation);
 
+
+/* WALLET */
+router.get('/wallet/balance', authenticate, WalletController.getBalance);
+
+router.post(
+  '/wallet/deposit',
+  authenticate,
+  WalletController.depositValidation,
+  WalletController.deposit
+);
+
+router.post(
+  '/wallet/withdraw',
+  authenticate,
+  WalletController.withdrawValidation,
+  WalletController.withdraw
+);
+
+router.get(
+  '/wallet/transactions',
+  authenticate,
+  WalletController.getTransactionsValidation,
+  WalletController.getTransactions
+);
 router.get('/', (req, res) => {
   res.status(StatusCodes.OK).send('Hello, World!');
 });

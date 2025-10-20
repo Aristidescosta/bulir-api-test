@@ -5,7 +5,7 @@ import { UserProvider } from '../User';
 import { EBookingStatus, ECancelledBy, IAvailabilityCheck, IBooking, IBookingFilters, IBookingWithDetails, ICancelBookingDTO, ICreateBookingDTO } from '../../../../types/booking';
 import { ETableNames } from '../../ETableNames';
 import { v4 as uuid } from 'uuid';
-import { WalletProvider } from '../Balance';
+import { WalletProvider } from '../Wallet';
 
 export class BookingProvider {
   private readonly serviceProvider: ServiceProvider;
@@ -96,7 +96,7 @@ export class BookingProvider {
         cancelled_at: null,
       };
 
-      const [insertedBooking] = await this.knex(ETableNames.bookings)
+      const [insertedBooking] = await trx(ETableNames.bookings)
         .insert(bookingData)
         .returning('*');
 
@@ -104,13 +104,15 @@ export class BookingProvider {
         data.customer_id,
         service.provider_id,
         bookingData.id,
-        service.price
+        service.price,
+        trx
       );
 
       await trx.commit();
 
       return insertedBooking as IBooking;
     } catch (error) {
+      await trx.rollback();
       console.error('Error in BookingProvider.create:', error);
       throw error;
     }
@@ -462,8 +464,13 @@ export class BookingProvider {
     }
   }
   async cancel(id: string, data: ICancelBookingDTO): Promise<IBooking> {
+    const trx = await this.knex.transaction();
     try {
-      const booking = await this.findById(id);
+      const booking = await trx(ETableNames.bookings)
+        .where({ id })
+        .first()
+        .forUpdate();
+
       if (!booking) {
         throw new Error('Reserva não encontrada');
       }
@@ -479,7 +486,7 @@ export class BookingProvider {
         }
       }
 
-      const [cancelledBooking] = await this.knex(ETableNames.bookings)
+      const [cancelledBooking] = await trx(ETableNames.bookings)
         .where({ id })
         .update({
           status: EBookingStatus.CANCELLED,
@@ -490,8 +497,19 @@ export class BookingProvider {
         })
         .returning('*');
 
+      const walletProvider = new WalletProvider(this.knex);
+      await walletProvider.processRefund(
+        booking.customer_id,
+        booking.provider_id,
+        id,
+        booking.total_price
+      );
+
+      await trx.commit();
+
       return cancelledBooking as IBooking;
     } catch (error) {
+      await trx.rollback();
       console.error('Error in BookingProvider.cancel:', error);
       throw error;
     }

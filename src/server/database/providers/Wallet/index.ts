@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Knex } from 'knex';
 import { ETableNames } from '../../ETableNames';
 import { v4 as uuidv4 } from 'uuid';
@@ -34,9 +35,11 @@ export class WalletProvider {
   /**
    * Obtém saldo do usuário
    */
-  async getBalance(userId: string): Promise<number> {
+  async getBalance(userId: string, trx?: Knex.Transaction): Promise<number> {
+    const query = trx ? trx(ETableNames.user) : this.knex(ETableNames.user);
+
     try {
-      const user = await this.knex(ETableNames.user)
+      const user = await query
         .where({ id: userId })
         .select('balance')
         .first();
@@ -68,16 +71,16 @@ export class WalletProvider {
   /**
    * Adiciona saldo (depósito)
    */
-  async deposit(userId: string, amount: number, description: string): Promise<ITransaction> {
-    const trx = await this.knex.transaction();
+  async deposit(userId: string, amount: number, description: string, externalTrx?: Knex.Transaction): Promise<ITransaction> {
+    const useExternalTransaction = !!externalTrx;
+    const trx = externalTrx || await this.knex.transaction();
 
     try {
-      // Buscar saldo atual
       const user = await trx(ETableNames.user)
         .where({ id: userId })
         .select('balance')
         .first()
-        .forUpdate(); // Lock pessimista
+        .forUpdate();
 
       if (!user) {
         throw new Error('Usuário não encontrado');
@@ -86,12 +89,10 @@ export class WalletProvider {
       const balanceBefore = Number(user.balance);
       const balanceAfter = balanceBefore + amount;
 
-      // Atualizar saldo
       await trx(ETableNames.user)
         .where({ id: userId })
         .update({ balance: balanceAfter });
 
-      // Criar transação
       const transaction = {
         id: this.generateUUID(),
         user_id: userId,
@@ -105,7 +106,9 @@ export class WalletProvider {
 
       await trx(ETableNames.transaction).insert(transaction);
 
-      await trx.commit();
+      if (!useExternalTransaction) {
+        await trx.commit();
+      }
 
       return transaction as ITransaction;
     } catch (error) {
@@ -118,11 +121,11 @@ export class WalletProvider {
   /**
    * Remove saldo (saque)
    */
-  async withdraw(userId: string, amount: number, description: string): Promise<ITransaction> {
-    const trx = await this.knex.transaction();
+  async withdraw(userId: string, amount: number, description: string, externalTrx?: Knex.Transaction): Promise<ITransaction> {
+    const useExternalTransaction = !!externalTrx;
+    const trx = externalTrx || await this.knex.transaction();
 
     try {
-      // Buscar saldo atual
       const user = await trx(ETableNames.user)
         .where({ id: userId })
         .select('balance')
@@ -134,12 +137,7 @@ export class WalletProvider {
       }
 
       const balanceBefore = Number(user.balance);
-
-      if (balanceBefore < amount) {
-        throw new Error('Saldo insuficiente');
-      }
-
-      const balanceAfter = balanceBefore - amount;
+      const balanceAfter = balanceBefore + amount;
 
       await trx(ETableNames.user)
         .where({ id: userId })
@@ -158,7 +156,9 @@ export class WalletProvider {
 
       await trx(ETableNames.transaction).insert(transaction);
 
-      await trx.commit();
+      if (!useExternalTransaction) {
+        await trx.commit();
+      }
 
       return transaction as ITransaction;
     } catch (error) {
@@ -175,9 +175,11 @@ export class WalletProvider {
     customerId: string,
     providerId: string,
     bookingId: string,
-    amount: number
+    amount: number,
+    externalTrx?: Knex.Transaction
   ): Promise<{ customerTransaction: ITransaction; providerTransaction: ITransaction }> {
-    const trx = await this.knex.transaction();
+    const useExternalTransaction = !!externalTrx;
+    const trx = externalTrx || await this.knex.transaction();
 
     try {
       const customer = await trx(ETableNames.user)
@@ -244,14 +246,18 @@ export class WalletProvider {
 
       await trx(ETableNames.transaction).insert(providerTransaction);
 
-      await trx.commit();
+      if (!useExternalTransaction) {
+        await trx.commit();
+      }
 
       return {
         customerTransaction: customerTransaction as ITransaction,
         providerTransaction: providerTransaction as ITransaction,
       };
     } catch (error) {
-      await trx.rollback();
+      if (!useExternalTransaction) {
+        await trx.rollback();
+      }
       console.error('Error in WalletProvider.processBookingPayment:', error);
       throw error;
     }
@@ -401,7 +407,10 @@ export class WalletProvider {
       }
 
       const [result] = await query;
-      return Number(result.total);
+      const total = typeof result === 'string'
+        ? Number(result)
+        : Number((result as any).total);
+      return total;
     } catch (error) {
       console.error('Error in WalletProvider.countTransactions:', error);
       throw error;

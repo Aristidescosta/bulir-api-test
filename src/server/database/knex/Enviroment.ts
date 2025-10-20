@@ -19,7 +19,15 @@ export const development: Knex.Config = {
     afterCreate: (connection: any, done: Function) => {
       connection.run('PRAGMA foreign_keys = ON');
       done();
-    }
+    },
+    min: 2,
+    max: 20,
+    acquireTimeoutMillis: 60000,
+    createTimeoutMillis: 30000,
+    destroyTimeoutMillis: 5000,
+    idleTimeoutMillis: 30000,
+    reapIntervalMillis: 1000,
+    createRetryIntervalMillis: 100,
   }
 };
 
