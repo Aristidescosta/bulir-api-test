@@ -9,6 +9,7 @@ export interface IUser {
   status: EUserStatus;
   created_at: Date;
   updated_at: Date;
+  balance: number
 }
 
 export enum EUserType {

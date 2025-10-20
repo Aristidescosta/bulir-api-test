@@ -2,9 +2,10 @@
 import { Knex } from 'knex';
 import { ServiceProvider } from '../Services';
 import { UserProvider } from '../User';
-import { EBookingStatus, IAvailabilityCheck, IBooking, IBookingFilters, IBookingWithDetails, ICreateBookingDTO } from '../../../../types/booking';
+import { EBookingStatus, ECancelledBy, IAvailabilityCheck, IBooking, IBookingFilters, IBookingWithDetails, ICancelBookingDTO, ICreateBookingDTO } from '../../../../types/booking';
 import { ETableNames } from '../../ETableNames';
 import { v4 as uuid } from 'uuid';
+import { WalletProvider } from '../Balance';
 
 export class BookingProvider {
   private readonly serviceProvider: ServiceProvider;
@@ -19,6 +20,7 @@ export class BookingProvider {
    * Cria uma nova reserva
    */
   async create(data: ICreateBookingDTO): Promise<IBooking> {
+    const trx = await this.knex.transaction();
     try {
       const service = await this.serviceProvider.findById(data.service_id);
       if (!service) {
@@ -65,6 +67,16 @@ export class BookingProvider {
         provider_id: service.provider_id,
       });
 
+      const walletProvider = new WalletProvider(this.knex);
+      const hasSufficientBalance = await walletProvider.hasSufficientBalance(
+        data.customer_id,
+        service.price
+      );
+
+      if (!hasSufficientBalance) {
+        throw new Error('Saldo insuficiente para realizar a reserva');
+      }
+
       if (!isAvailable) {
         throw new Error('Horário não disponível para este serviço');
       }
@@ -87,6 +99,15 @@ export class BookingProvider {
       const [insertedBooking] = await this.knex(ETableNames.bookings)
         .insert(bookingData)
         .returning('*');
+
+      await walletProvider.processBookingPayment(
+        data.customer_id,
+        service.provider_id,
+        bookingData.id,
+        service.price
+      );
+
+      await trx.commit();
 
       return insertedBooking as IBooking;
     } catch (error) {
@@ -270,7 +291,6 @@ export class BookingProvider {
     }
   }
 
-
   /**
    * Conta reservas com filtros
    */
@@ -438,6 +458,63 @@ export class BookingProvider {
       return booking || null;
     } catch (error) {
       console.error('Error in BookingProvider.findById:', error);
+      throw error;
+    }
+  }
+  async cancel(id: string, data: ICancelBookingDTO): Promise<IBooking> {
+    try {
+      const booking = await this.findById(id);
+      if (!booking) {
+        throw new Error('Reserva não encontrada');
+      }
+
+      if (![EBookingStatus.PENDING, EBookingStatus.CONFIRMED].includes(booking.status)) {
+        throw new Error('Apenas reservas pendentes ou confirmadas podem ser canceladas');
+      }
+
+      const minCancellationHours = 24;
+      if (data.cancelled_by === ECancelledBy.CUSTOMER) {
+        if (!this.canCancelBooking(booking.booking_date, booking.start_time, minCancellationHours)) {
+          throw new Error(`Cancelamento deve ser feito com pelo menos ${minCancellationHours} horas de antecedência`);
+        }
+      }
+
+      const [cancelledBooking] = await this.knex(ETableNames.bookings)
+        .where({ id })
+        .update({
+          status: EBookingStatus.CANCELLED,
+          cancelled_by: data.cancelled_by,
+          cancellation_reason: data.cancellation_reason || null,
+          cancelled_at: new Date(),
+          updated_at: this.knex.fn.now(),
+        })
+        .returning('*');
+
+      return cancelledBooking as IBooking;
+    } catch (error) {
+      console.error('Error in BookingProvider.cancel:', error);
+      throw error;
+    }
+  };
+  /**
+   * Verifica se pode cancelar com antecedência mínima
+   */
+  private canCancelBooking(date: Date, time: string, minHours: number): boolean {
+    return this.hasMinimumAdvance(date, time, minHours);
+  };
+
+  /**
+   * Verifica se reserva pertence a um cliente
+   */
+  async belongsToCustomer(bookingId: string, customerId: string): Promise<boolean> {
+    try {
+      const booking = await this.knex(ETableNames.bookings)
+        .where({ id: bookingId, customer_id: customerId })
+        .first();
+
+      return !!booking;
+    } catch (error) {
+      console.error('Error in BookingProvider.belongsToCustomer:', error);
       throw error;
     }
   }

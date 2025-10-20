@@ -35,6 +35,7 @@ router.get('/users', authenticate, UserController.getAllValidation, UserControll
 router.post('/booking', authenticate, BookingController.createValidation, BookingController.create);
 router.get('/bookings', authenticate, BookingController.getAllValidation, BookingController.getAll);
 router.get('/booking/:id', authenticate, BookingController.getByIdValidation, BookingController.getById);
+router.patch('/booking/:id/cancel', authenticate, BookingController.cancelValidation, BookingController.cancel);
 router.get('/booking/complete/:id', authenticate, BookingController.completeValidation, BookingController.completeValidation);
 
 router.get('/', (req, res) => {

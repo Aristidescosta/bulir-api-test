@@ -6,6 +6,7 @@ export async function up(knex: Knex) {
     .createTable(ETableNames.user, (table) => {
       table.string('id', 36).primary();
 
+      table.decimal('balance', 10, 2).notNullable().defaultTo(0);
       table.string('name', 150).notNullable();
       table.string('email', 255).notNullable().unique();
       table.string('nif', 255).notNullable().unique();
