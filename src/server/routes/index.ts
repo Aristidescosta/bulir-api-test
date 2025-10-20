@@ -18,7 +18,7 @@ router.get('/auth/me', authenticate, AuthController.me);
 
 router.post('/services', authenticate, ServicesController.createValidation, ServicesController.create);
 router.get('/services', authenticate, ServicesController.getAllValidation, ServicesController.getAll);
-router.get('/services/by-provider', authenticate, ServicesController.getAllByProviderValidation, ServicesController.getAllByProvider);
+router.get('/services/my', authenticate, ServicesController.getAllByProviderValidation, ServicesController.getAllByProvider);
 router.get('/services/:id', authenticate, ServicesController.getByIdValidation, ServicesController.getById);
 router.delete('/services/:id', authenticate, ServicesController.deleteByIdValidation, ServicesController.deleteById);
 router.put('/services/:id', authenticate, ServicesController.updateByIdValidation, ServicesController.updateById);

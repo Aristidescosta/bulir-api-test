@@ -1,3 +1,5 @@
+import { EServiceCategory } from './service';
+
 export enum EBookingStatus {
   PENDING = 'PENDING',
   CONFIRMED = 'CONFIRMED',
@@ -29,6 +31,7 @@ export interface IBookingWithDetails extends IBooking {
   service: {
     id: string;
     name: string;
+    category?: EServiceCategory
   }
   provider: {
     id: string;

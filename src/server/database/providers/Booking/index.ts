@@ -188,12 +188,13 @@ export class BookingProvider {
 
           `${ETableNames.service}.id as service_id`,
           `${ETableNames.service}.name as service_name`,
+          `${ETableNames.service}.category as service_category`,
 
           'customer.id as customer_id',
           'customer.name as customer_name',
 
           'provider.id as provider_id',
-          'provider.name as provider_name'
+          'provider.name as provider_name',
         )
         .leftJoin(
           ETableNames.service,
@@ -211,7 +212,6 @@ export class BookingProvider {
           'provider.id'
         );
 
-      // 🔍 Filtros dinâmicos
       if (filters?.customer_id)
         query = query.where(`${ETableNames.bookings}.customer_id`, filters.customer_id);
       if (filters?.provider_id)
@@ -251,6 +251,7 @@ export class BookingProvider {
         service: {
           id: b.service_id,
           name: b.service_name,
+          category: b.service_category,
         },
         provider: {
           id: b.provider_id,
@@ -345,7 +346,35 @@ export class BookingProvider {
         .where(`${ETableNames.bookings}.id`, id)
         .first();
 
-      return booking || null;
+      const bookingWithDetails: IBookingWithDetails = {
+        id: booking.id,
+        booking_date: booking.booking_date,
+        start_time: booking.start_time,
+        end_time: booking.end_time,
+        status: booking.status,
+        total_price: booking.total_price,
+        cancellation_reason: booking.cancellation_reason,
+        cancelled_by: booking.cancelled_by,
+        cancelled_at: booking.cancelled_at,
+        created_at: booking.created_at,
+        updated_at: booking.updated_at,
+
+        service: {
+          id: booking.service_id,
+          name: booking.service_name,
+          category: booking.service_category,
+        },
+        provider: {
+          id: booking.provider_id,
+          name: booking.provider_name,
+        },
+        customer: {
+          id: booking.customer_id,
+          name: booking.customer_name,
+        },
+      };
+
+      return bookingWithDetails || null;
     } catch (error) {
       console.error('Error in BookingProvider.findByIdWithDetails:', error);
       throw error;
