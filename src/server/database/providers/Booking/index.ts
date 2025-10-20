@@ -186,15 +186,12 @@ export class BookingProvider {
         .select(
           `${ETableNames.bookings}.*`,
 
-          // 🔹 Campos do serviço
           `${ETableNames.service}.id as service_id`,
           `${ETableNames.service}.name as service_name`,
 
-          // 🔹 Campos do cliente
           'customer.id as customer_id',
           'customer.name as customer_name',
 
-          // 🔹 Campos do provedor
           'provider.id as provider_id',
           'provider.name as provider_name'
         )
@@ -238,7 +235,6 @@ export class BookingProvider {
 
       const rows = await query;
 
-      // 🔧 Mapeamento para o formato da interface IBookingWithDetails
       const bookings: IBookingWithDetails[] = rows.map((b: any) => ({
         id: b.id,
         booking_date: b.booking_date,

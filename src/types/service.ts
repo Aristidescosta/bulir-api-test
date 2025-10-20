@@ -28,9 +28,11 @@ export interface IService {
 }
 
 export interface IServiceWithProvider extends IService {
-  provider_name: string;
-  provider_email: string;
-  provider_phone: string | null;
+  provider: {
+    name: string;
+    email: string;
+    phone: string;
+  }
 }
 
 export interface ICreateServiceDTO {

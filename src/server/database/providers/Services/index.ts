@@ -69,7 +69,6 @@ export class ServiceProvider {
           `${ETableNames.user}.id`
         );
 
-      // Aplicar filtros (mesma lógica do findAll)
       if (filters?.provider_id) {
         query = query.where(`${ETableNames.service}.provider_id`, filters.provider_id);
       }
@@ -108,13 +107,24 @@ export class ServiceProvider {
 
       query = query.orderBy(`${ETableNames.service}.created_at`, 'desc');
 
-      const services = await query;
-      return services as IServiceWithProvider[];
+      const servicesRaw = await query;
+
+      const services = servicesRaw.map((s) => ({
+        ...s,
+        provider: {
+          name: s.provider_name,
+          email: s.provider_email,
+          phone: s.provider_phone,
+        },
+      })) as IServiceWithProvider[];
+
+      return services;
     } catch (error) {
       console.error('Error in ServiceProvider.findAllWithProvider:', error);
       throw error;
     }
-  };
+  }
+
 
   /**
    * Conta total de serviços com filtros
@@ -167,7 +177,7 @@ export class ServiceProvider {
    */
   async findByIdWithProvider(id: string): Promise<IServiceWithProvider | null> {
     try {
-      const service = await this.knex(ETableNames.service)
+      const serviceRaw = await this.knex(ETableNames.service)
         .select(
           `${ETableNames.service}.*`,
           `${ETableNames.user}.name as provider_name`,
@@ -182,12 +192,23 @@ export class ServiceProvider {
         .where(`${ETableNames.service}.id`, id)
         .first();
 
-      return service || null;
+      if (!serviceRaw) return null;
+
+      const service: IServiceWithProvider = {
+        ...serviceRaw,
+        provider: {
+          name: serviceRaw.provider_name,
+          email: serviceRaw.provider_email,
+          phone: serviceRaw.provider_phone,
+        },
+      };
+
+      return service;
     } catch (error) {
       console.error('Error in ServiceProvider.findByIdWithProvider:', error);
       throw error;
     }
-  };
+  }
 
   /**
    * Verifica se serviço pertence a um provedor
@@ -292,5 +313,75 @@ export class ServiceProvider {
       throw error;
     }
   };
-  
+  async findAll(filters?: IServiceFilters): Promise<IServiceWithProvider[]> {
+    try {
+      let query = this.knex(ETableNames.service)
+        .select(
+          `${ETableNames.service}.*`,
+          `${ETableNames.user}.name as provider_name`,
+          `${ETableNames.user}.email as provider_email`,
+          `${ETableNames.user}.phone as provider_phone`
+        )
+        .leftJoin(
+          ETableNames.user,
+          `${ETableNames.service}.provider_id`,
+          `${ETableNames.user}.id`
+        );
+
+      if (filters?.provider_id) {
+        query = query.where(`${ETableNames.service}.provider_id`, filters.provider_id);
+      }
+
+      if (filters?.category) {
+        query = query.where(`${ETableNames.service}.category`, filters.category);
+      }
+
+      if (filters?.status) {
+        query = query.where(`${ETableNames.service}.status`, filters.status);
+      }
+
+      if (filters?.min_price !== undefined) {
+        query = query.where('price', '>=', filters.min_price);
+      }
+
+      if (filters?.max_price !== undefined) {
+        query = query.where('price', '<=', filters.max_price);
+      }
+
+      if (filters?.search) {
+        query = query.where((builder) => {
+          builder
+            .where('name', 'like', `%${filters.search}%`)
+            .orWhere('description', 'like', `%${filters.search}%`);
+        });
+      }
+
+      if (filters?.limit) {
+        query = query.limit(filters.limit);
+      }
+
+      if (filters?.offset) {
+        query = query.offset(filters.offset);
+      }
+
+      query = query.orderBy('created_at', 'desc');
+
+      const servicesRaw = await query;
+
+      const services = servicesRaw.map((s) => ({
+        ...s,
+        provider: {
+          name: s.provider_name,
+          email: s.provider_email,
+          phone: s.provider_phone,
+        },
+      })) as IServiceWithProvider[];
+
+      return services;
+    } catch (error) {
+      console.error('Error in ServiceProvider.findAll:', error);
+      throw error;
+    }
+  }
+
 }

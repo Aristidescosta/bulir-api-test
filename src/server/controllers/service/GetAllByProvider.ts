@@ -7,14 +7,31 @@ import { validation } from '../../shared/middlewares';
 import { Knex } from '../../database/knex';
 import { ServiceProvider } from '../../database/providers/Services';
 
-export const getAllValidation = validation((getSchema) => ({
+export const getAllByProviderValidation = validation((getSchema) => ({
   query: getSchema<TQueryParams>(queryValidation)
 }));
 
 const serviceProvider = new ServiceProvider(Knex);
 
-export const getAll = async (req: Request, res: Response) => {
+export const getAllByProvider = async (req: Request, res: Response) => {
   try {
+    const userId = (req as any).user?.id;
+    const userType = (req as any).user?.type;
+
+    if (!userId) {
+      return res.status(StatusCodes.UNAUTHORIZED).json({
+        success: false,
+        message: 'Usuário não autenticado',
+      });
+    }
+
+    if (userType !== 'PROVIDER') {
+      return res.status(StatusCodes.FORBIDDEN).json({
+        success: false,
+        message: 'Apenas provedores podem listar seus serviços',
+      });
+    }
+
     const {
       category,
       min_price,
@@ -26,7 +43,8 @@ export const getAll = async (req: Request, res: Response) => {
 
     const offset = (Number(page) - 1) * Number(limit);
 
-    const services = await serviceProvider.findAllWithProvider({
+    const services = await serviceProvider.findAll({
+      provider_id: userId as string,
       category: category as any,
       status: 'ACTIVE' as any,
       min_price: min_price ? Number(min_price) : undefined,
@@ -37,6 +55,7 @@ export const getAll = async (req: Request, res: Response) => {
     });
 
     const total = await serviceProvider.count({
+      provider_id: userId as string,
       category: category as any,
       status: 'ACTIVE' as any,
       min_price: min_price ? Number(min_price) : undefined,
