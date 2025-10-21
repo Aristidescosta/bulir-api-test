@@ -20,7 +20,7 @@ export const depositValidation = validation((getSchema) => ({
         .number()
         .required('Valor é obrigatório')
         .positive('Valor deve ser positivo')
-        .max(10000, 'Valor máximo por depósito é 10.000')
+        .max(100000, 'Valor máximo por depósito é 100.000')
         .test(
           'decimal-places',
           'Valor deve ter no máximo 2 casas decimais',
